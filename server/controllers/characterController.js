@@ -86,7 +86,7 @@ exports.chatWithAI = async (req, res) => {
       console.log('Split lines:', lines); // 분리된 라인 로그 출력
 
       for (const line of lines) {
-        if (line.included('[DONE]')) {
+        if (line.includes('[DONE]')) {
           // 스트림 종료 신호 처리
           console.log('Stream finished.');
           res.end(); // 클라이언트와의 연결 종료

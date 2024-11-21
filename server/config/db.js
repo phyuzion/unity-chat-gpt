@@ -6,10 +6,10 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('Connected to MongoDB Atlas!');
+    console.log('MongoDB Connected...');
   } catch (err) {
-    console.error('MongoDB connection error:', err);
-    process.exit(1); // 실패 시 앱 종료
+    console.error('MongoDB connection failed:', err);
+    process.exit(1);
   }
 };
 

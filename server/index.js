@@ -1,19 +1,22 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const connectDB = require('./config/db');
+const restoreConversations = require('./restoreConversations');
 const characterRoutes = require('./routes/characterRoutes');
 
 const app = express();
-app.use(bodyParser.json());
+const PORT = process.env.PORT || 3000;
 
-// MongoDB 연결
+// DB 연결
 connectDB();
 
-// 라우트 설정
+// 서버 재시작 시 복원
+restoreConversations();
+
+// 미들웨어 설정
+app.use(express.json());
 app.use('/api', characterRoutes);
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

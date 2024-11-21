@@ -111,7 +111,7 @@ exports.chatWithAI = async (req, res) => {
       }
     
       // 남은 데이터가 있을 경우 버퍼 정리
-      buffer = buffer.endsWith('\n') ? '' : buffer;
+      buffer = buffer.endsWith('\n') ? '' : buffer.split('\n').slice(-1)[0];
     });
     
     

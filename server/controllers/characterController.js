@@ -24,6 +24,8 @@ exports.createCharacter = async (req, res) => {
 };
 
 
+
+
 exports.chatWithAI = async (req, res) => {
   const { characterId, sessionId, userMessage } = req.method === 'POST' ? req.body : req.query;
 
@@ -82,6 +84,7 @@ exports.chatWithAI = async (req, res) => {
 
       for (const line of lines) {
         if (line.includes('[DONE]')) {
+          res.write(`data: [DONE]\n\n`); // 종료 신호 전송
           res.end();
           return;
         }
@@ -93,8 +96,8 @@ exports.chatWithAI = async (req, res) => {
             const content = parsed.choices[0]?.delta?.content || '';
 
             if (content) {
-              assistantResponse += content;
-              res.write(`data: ${content}\n\n`);
+              assistantResponse += content; // 데이터를 누적
+              res.write(`data: ${content}\n\n`); // 스트리밍으로 클라이언트에 전송
             }
           } catch (err) {
             console.error(`Error parsing line: ${line}`, err);
@@ -102,7 +105,8 @@ exports.chatWithAI = async (req, res) => {
         }
       }
 
-      buffer = buffer.endsWith('\n') ? '' : buffer.split('\n').slice(-1)[0];
+      // 남은 데이터 처리
+      buffer = buffer.endsWith('\n') ? '' : lines.slice(-1)[0];
     });
 
     openaiRequest.data.on('end', async () => {
@@ -116,7 +120,7 @@ exports.chatWithAI = async (req, res) => {
       } catch (error) {
         console.error('Error saving conversation to database:', error);
       }
-      res.end();
+      res.end(); // 연결 종료
     });
 
     openaiRequest.data.on('error', (error) => {

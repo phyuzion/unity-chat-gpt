@@ -94,11 +94,14 @@ exports.chatWithAI = async (req, res) => {
             const jsonString = line.replace(/^data: /, '').trim();
             const parsed = JSON.parse(jsonString);
             const content = parsed.choices[0]?.delta?.content || '';
-
+            
             if (content) {
               assistantResponse += content; // 데이터를 누적
-              res.write(`data: ${content}\n\n`); // 스트리밍으로 클라이언트에 전송
+              // 띄어쓰기를 보장하면서 데이터 전송
+              const dataToSend = assistantResponse.endsWith(" ") ? content : `${content} `;
+              res.write(`data: ${dataToSend}\n\n`);
             }
+          
           } catch (err) {
             console.error(`Error parsing line: ${line}`, err);
           }

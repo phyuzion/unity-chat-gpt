@@ -24,10 +24,8 @@ exports.createCharacter = async (req, res) => {
 };
 
 
-
-
 exports.chatWithAI = async (req, res) => {
-  const { characterId, sessionId, userMessage } = req.body;
+  const { characterId, sessionId, userMessage } = req.method === 'POST' ? req.body : req.query;
 
   if (!characterId || !sessionId || !userMessage) {
     return res.status(400).json({ error: 'characterId, sessionId, and userMessage are required.' });
@@ -76,54 +74,44 @@ exports.chatWithAI = async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
 
     let assistantResponse = '';
-    let buffer = ''; // 데이터 병합용 버퍼
+    let buffer = '';
 
     openaiRequest.data.on('data', (chunk) => {
-      buffer += chunk.toString(); // 청크를 버퍼에 추가
-      const lines = buffer.split('\n').filter((line) => line.trim() !== ''); // 빈 라인 제거
-        
-      console.log('Received chunk:', chunk.toString()); // 청크 단위 로그 출력
-      console.log('Split lines:', lines); // 분리된 라인 로그 출력
+      buffer += chunk.toString();
+      const lines = buffer.split('\n').filter((line) => line.trim() !== '');
 
       for (const line of lines) {
         if (line.includes('[DONE]')) {
-          // 스트림 종료 신호 처리
-          console.log('Stream finished.');
-          res.end(); // 클라이언트와의 연결 종료
+          res.end();
           return;
         }
-    
-        // JSON 데이터만 파싱
+
         if (line.startsWith('data: ')) {
           try {
-            const jsonString = line.replace(/^data: /, '').trim(); // 'data: ' 제거
-            const parsed = JSON.parse(jsonString); // JSON 파싱
+            const jsonString = line.replace(/^data: /, '').trim();
+            const parsed = JSON.parse(jsonString);
             const content = parsed.choices[0]?.delta?.content || '';
-    
+
             if (content) {
-              assistantResponse += content; // 응답 누적
-              res.write(`data: ${content}\n\n`); // 클라이언트가 인식할 수 있는 SSE 포맷
+              assistantResponse += content;
+              res.write(`data: ${content}\n\n`);
             }
           } catch (err) {
             console.error(`Error parsing line: ${line}`, err);
           }
         }
       }
-    
-      // 남은 데이터가 있을 경우 버퍼 정리
+
       buffer = buffer.endsWith('\n') ? '' : buffer.split('\n').slice(-1)[0];
     });
-    
-    
 
     openaiRequest.data.on('end', async () => {
       try {
-        // 대화 기록 저장
         session.messages.push(
-          { role: 'user', content: userMessage }, // 사용자 메시지 저장
-          { role: 'assistant', content: assistantResponse } // AI 응답 저장
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: assistantResponse }
         );
-        await character.save(); // MongoDB에 저장
+        await character.save();
         console.log('Conversation saved to database.');
       } catch (error) {
         console.error('Error saving conversation to database:', error);

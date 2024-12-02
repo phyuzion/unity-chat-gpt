@@ -79,11 +79,11 @@ async function chatWithAI() {
                     console.log("Streaming complete.");
                     return;
                 }
-
                 if (line.startsWith("data: ")) {
-                    const content = line.replace(/^data: /, "").trim();
+                    // 'data: ' 제거 후 뒤쪽 공백만 제거
+                    const content = line.replace(/^data: /, "").replace(/\s+$/, ""); 
                     currentResponse += content;
-
+                
                     // 화면에 업데이트
                     const lastMessage = document.querySelector(".message.ai:last-child");
                     if (lastMessage) {
@@ -93,6 +93,7 @@ async function chatWithAI() {
                     }
                     chatBox.scrollTop = chatBox.scrollHeight; // 자동 스크롤
                 }
+                
             }
 
             // 남은 데이터 정리

@@ -32,10 +32,14 @@ input, textarea, button {
     overflow-y: auto;
     background-color: #fff;
     margin-bottom: 20px;
+
+    white-space: pre-wrap;
 }
 
 .message {
     margin: 5px 0;
+
+    white-space: pre-wrap;
 }
 
 .message.user {
@@ -46,4 +50,6 @@ input, textarea, button {
 .message.ai {
     text-align: left;
     color: green;
+
+    white-space: pre-wrap;
 }
